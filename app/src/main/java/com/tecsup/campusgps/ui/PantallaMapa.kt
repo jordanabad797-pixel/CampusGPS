@@ -7,6 +7,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -34,6 +35,8 @@ import java.util.Locale
 @Composable
 fun PantallaMapa(vm: MapaViewModel) {
     val estado by vm.estado.collectAsState()
+    val lugares by vm.lugares.collectAsState()
+    val seleccionado by vm.seleccionado.collectAsState()
     val contexto = LocalContext.current
 
     val lanzador = rememberLauncherForActivityResult(
@@ -82,28 +85,41 @@ fun PantallaMapa(vm: MapaViewModel) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Button(
-                onClick = { alPulsar() },
-                enabled = estado !is UbicacionUi.Buscando
+            MapaUbicacion(
+                estado = estado,
+                lugares = lugares,
+                seleccionado = seleccionado,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("Obtener mi ubicación", fontWeight = FontWeight.Bold)
-            }
-            when (val e = estado) {
-                UbicacionUi.Inicial -> Text("Pulsa el botón para empezar")
-                UbicacionUi.Buscando -> CircularProgressIndicator()
-                is UbicacionUi.Lista -> {
-                    Text("Latitud: ${String.format(Locale.US, "%.4f", e.posicion.latitud)}")
-                    Text("Longitud: ${String.format(Locale.US, "%.4f", e.posicion.longitud)}")
+                Button(
+                    onClick = { alPulsar() },
+                    enabled = estado !is UbicacionUi.Buscando
+                ) {
+                    Text("Obtener mi ubicación", fontWeight = FontWeight.Bold)
                 }
-                is UbicacionUi.Error -> Text(
-                    text = e.mensaje,
-                    color = MaterialTheme.colorScheme.error,
-                    textAlign = TextAlign.Center
-                )
+                when (val e = estado) {
+                    UbicacionUi.Inicial -> Text("Pulsa el botón para empezar")
+                    UbicacionUi.Buscando -> CircularProgressIndicator()
+                    is UbicacionUi.Lista -> {
+                        Text("Latitud: ${String.format(Locale.US, "%.4f", e.posicion.latitud)}")
+                        Text("Longitud: ${String.format(Locale.US, "%.4f", e.posicion.longitud)}")
+                    }
+                    is UbicacionUi.Error -> Text(
+                        text = e.mensaje,
+                        color = MaterialTheme.colorScheme.error,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         }
     }
