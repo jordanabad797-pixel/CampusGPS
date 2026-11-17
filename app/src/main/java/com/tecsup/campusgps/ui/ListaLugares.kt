@@ -24,17 +24,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.tecsup.campusgps.model.LugarConDistancia
 import com.tecsup.campusgps.util.formatearDistancia
+
+private val VerdeCercano = Color(0xFF2E9E44)
 
 @Composable
 fun ListaLugares(
     lugares: List<LugarConDistancia>,
     seleccionado: Int?,
     onClick: (Int) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    masCercanoId: Int? = null
 ) {
     LazyColumn(
         modifier = modifier,
@@ -45,6 +49,7 @@ fun ListaLugares(
             TarjetaLugar(
                 item = item,
                 seleccionada = item.lugar.id == seleccionado,
+                esMasCercano = item.lugar.id == masCercanoId,
                 onClick = { onClick(item.lugar.id) }
             )
         }
@@ -55,6 +60,7 @@ fun ListaLugares(
 private fun TarjetaLugar(
     item: LugarConDistancia,
     seleccionada: Boolean,
+    esMasCercano: Boolean,
     onClick: () -> Unit
 ) {
     val colores = MaterialTheme.colorScheme
@@ -77,7 +83,7 @@ private fun TarjetaLugar(
                 modifier = Modifier
                     .size(8.dp)
                     .clip(CircleShape)
-                    .background(colores.primary)
+                    .background(if (esMasCercano) VerdeCercano else colores.primary)
             )
             Spacer(Modifier.width(10.dp))
             Column(modifier = Modifier.weight(1f)) {

@@ -15,6 +15,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -25,11 +26,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.tecsup.campusgps.model.UbicacionUi
+import com.tecsup.campusgps.util.formatearDistancia
 import com.tecsup.campusgps.viewmodel.MapaViewModel
 import java.util.Locale
 
@@ -39,6 +44,7 @@ fun PantallaMapa(vm: MapaViewModel) {
     val estado by vm.estado.collectAsState()
     val lugares by vm.lugares.collectAsState()
     val seleccionado by vm.seleccionado.collectAsState()
+    val masCercano by vm.masCercano.collectAsState()
     val contexto = LocalContext.current
 
     val lanzador = rememberLauncherForActivityResult(
@@ -92,6 +98,7 @@ fun PantallaMapa(vm: MapaViewModel) {
                 estado = estado,
                 lugares = lugares,
                 seleccionado = seleccionado,
+                masCercanoId = masCercano?.id,
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
@@ -108,6 +115,25 @@ fun PantallaMapa(vm: MapaViewModel) {
                     enabled = estado !is UbicacionUi.Buscando
                 ) {
                     Text("Obtener mi ubicación", fontWeight = FontWeight.Bold)
+                }
+                OutlinedButton(
+                    onClick = { masCercano?.let { vm.seleccionar(it.id) } },
+                    enabled = masCercano != null
+                ) {
+                    Text("Ir al más cercano", fontWeight = FontWeight.Bold)
+                }
+                val cercano = lugares.firstOrNull { it.lugar.id == masCercano?.id }
+                val metrosCercano = cercano?.metros
+                if (cercano != null && metrosCercano != null) {
+                    Text(
+                        text = buildAnnotatedString {
+                            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append("Más cercano: ")
+                            }
+                            append("${cercano.lugar.nombre} (${formatearDistancia(metrosCercano)})")
+                        },
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 }
                 when (val e = estado) {
                     UbicacionUi.Inicial -> Text(
@@ -133,7 +159,8 @@ fun PantallaMapa(vm: MapaViewModel) {
                 onClick = { vm.seleccionar(it) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(220.dp)
+                    .height(220.dp),
+                masCercanoId = masCercano?.id
             )
         }
     }
