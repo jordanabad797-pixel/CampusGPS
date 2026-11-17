@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -97,9 +99,9 @@ fun PantallaMapa(vm: MapaViewModel) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Button(
                     onClick = { alPulsar() },
@@ -108,12 +110,16 @@ fun PantallaMapa(vm: MapaViewModel) {
                     Text("Obtener mi ubicación", fontWeight = FontWeight.Bold)
                 }
                 when (val e = estado) {
-                    UbicacionUi.Inicial -> Text("Pulsa el botón para empezar")
-                    UbicacionUi.Buscando -> CircularProgressIndicator()
-                    is UbicacionUi.Lista -> {
-                        Text("Latitud: ${String.format(Locale.US, "%.4f", e.posicion.latitud)}")
-                        Text("Longitud: ${String.format(Locale.US, "%.4f", e.posicion.longitud)}")
-                    }
+                    UbicacionUi.Inicial -> Text(
+                        text = "Pulsa el botón para empezar",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    UbicacionUi.Buscando -> CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                    is UbicacionUi.Lista -> Text(
+                        text = "Latitud: ${String.format(Locale.US, "%.4f", e.posicion.latitud)} · " +
+                            "Longitud: ${String.format(Locale.US, "%.4f", e.posicion.longitud)}",
+                        style = MaterialTheme.typography.bodySmall
+                    )
                     is UbicacionUi.Error -> Text(
                         text = e.mensaje,
                         color = MaterialTheme.colorScheme.error,
@@ -121,6 +127,14 @@ fun PantallaMapa(vm: MapaViewModel) {
                     )
                 }
             }
+            ListaLugares(
+                lugares = lugares,
+                seleccionado = seleccionado,
+                onClick = { vm.seleccionar(it) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(220.dp)
+            )
         }
     }
 }
