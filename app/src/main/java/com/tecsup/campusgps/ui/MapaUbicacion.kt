@@ -1,20 +1,25 @@
 package com.tecsup.campusgps.ui
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.platform.LocalContext
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberUpdatedMarkerState
+import com.tecsup.campusgps.R
 import com.tecsup.campusgps.model.LugarConDistancia
 import com.tecsup.campusgps.model.UbicacionUi
 
@@ -51,8 +56,17 @@ fun MapaUbicacion(
         }
     }
 
-    val propiedades = remember(permisoConcedido) {
-        MapProperties(isMyLocationEnabled = permisoConcedido)
+    val contexto = LocalContext.current
+    val temaOscuro = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val propiedades = remember(permisoConcedido, temaOscuro) {
+        MapProperties(
+            isMyLocationEnabled = permisoConcedido,
+            mapStyleOptions = if (temaOscuro) {
+                MapStyleOptions.loadRawResourceStyle(contexto, R.raw.mapa_oscuro)
+            } else {
+                null
+            }
+        )
     }
     val ajustes = remember(permisoConcedido) {
         MapUiSettings(myLocationButtonEnabled = permisoConcedido)

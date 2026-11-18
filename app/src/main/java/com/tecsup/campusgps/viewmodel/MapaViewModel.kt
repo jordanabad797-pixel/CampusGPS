@@ -37,6 +37,9 @@ class MapaViewModel(
     private val _seleccionado = MutableStateFlow<Int?>(null)
     val seleccionado: StateFlow<Int?> = _seleccionado.asStateFlow()
 
+    private val _temaOscuro = MutableStateFlow<Boolean?>(null)
+    val temaOscuro: StateFlow<Boolean?> = _temaOscuro.asStateFlow()
+
     val masCercano: StateFlow<Lugar?> = lugares
         .map { lista -> lista.firstOrNull { it.metros != null }?.lugar }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
@@ -66,6 +69,10 @@ class MapaViewModel(
             "Sin permiso de ubicación no puedo mostrar dónde estás",
             TipoError.SIN_PERMISO
         )
+    }
+
+    fun cambiarTema(oscuro: Boolean) {
+        _temaOscuro.value = oscuro
     }
 
     fun seleccionar(id: Int?) {

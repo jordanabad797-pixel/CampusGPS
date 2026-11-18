@@ -1,6 +1,8 @@
 package com.tecsup.campusgps.ui.theme
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -22,10 +24,30 @@ private val EsquemaCampus = lightColorScheme(
     onErrorContainer = RojoErrorTexto
 )
 
+private val EsquemaCampusOscuro = darkColorScheme(
+    primary = AzulNoche,
+    onPrimary = Color.White,
+    primaryContainer = AzulNocheContenedor,
+    onPrimaryContainer = AzulNocheTexto,
+    background = FondoNoche,
+    onBackground = TextoNoche,
+    surface = FondoNoche,
+    onSurface = TextoNoche,
+    surfaceVariant = TarjetaNoche,
+    onSurfaceVariant = GrisNoche,
+    outline = AzulNoche,
+    error = RojoNoche,
+    errorContainer = RojoNocheFondo,
+    onErrorContainer = RojoNocheTexto
+)
+
 @Composable
-fun CampusGPSTheme(content: @Composable () -> Unit) {
+fun CampusGPSTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    content: @Composable () -> Unit
+) {
     MaterialTheme(
-        colorScheme = EsquemaCampus,
+        colorScheme = if (darkTheme) EsquemaCampusOscuro else EsquemaCampus,
         typography = Typography,
         content = content
     )
