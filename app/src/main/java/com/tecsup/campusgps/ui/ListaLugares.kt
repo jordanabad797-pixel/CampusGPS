@@ -38,7 +38,8 @@ fun ListaLugares(
     seleccionado: Int?,
     onClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
-    masCercanoId: Int? = null
+    masCercanoId: Int? = null,
+    dentroIds: Set<Int> = emptySet()
 ) {
     LazyColumn(
         modifier = modifier,
@@ -50,6 +51,7 @@ fun ListaLugares(
                 item = item,
                 seleccionada = item.lugar.id == seleccionado,
                 esMasCercano = item.lugar.id == masCercanoId,
+                dentroDelRadio = item.lugar.id in dentroIds,
                 onClick = { onClick(item.lugar.id) }
             )
         }
@@ -61,6 +63,7 @@ private fun TarjetaLugar(
     item: LugarConDistancia,
     seleccionada: Boolean,
     esMasCercano: Boolean,
+    dentroDelRadio: Boolean,
     onClick: () -> Unit
 ) {
     val colores = MaterialTheme.colorScheme
@@ -100,12 +103,22 @@ private fun TarjetaLugar(
                 )
             }
             val metros = item.metros
-            Text(
-                text = if (metros != null) formatearDistancia(metros) else "Sin calcular",
-                fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.bodyMedium,
-                color = if (metros != null) colores.primary else colores.onSurfaceVariant
-            )
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = if (metros != null) formatearDistancia(metros) else "Sin calcular",
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (metros != null) colores.primary else colores.onSurfaceVariant
+                )
+                if (dentroDelRadio) {
+                    Text(
+                        text = "En tu radio",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = VerdeCercano
+                    )
+                }
+            }
         }
     }
 }

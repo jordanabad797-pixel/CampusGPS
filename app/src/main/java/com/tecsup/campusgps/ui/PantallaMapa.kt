@@ -60,6 +60,8 @@ fun PantallaMapa(vm: MapaViewModel, temaOscuro: Boolean) {
     val estado by vm.estado.collectAsState()
     val lugares by vm.lugaresVisibles.collectAsState()
     val categoria by vm.categoria.collectAsState()
+    val radio by vm.radio.collectAsState()
+    val dentroDelRadio by vm.dentroDelRadio.collectAsState()
     val seleccionado by vm.seleccionado.collectAsState()
     val masCercano by vm.masCercano.collectAsState()
     val contexto = LocalContext.current
@@ -157,6 +159,7 @@ fun PantallaMapa(vm: MapaViewModel, temaOscuro: Boolean) {
                     seleccionado = seleccionado,
                     masCercanoId = masCercano?.id,
                     permisoConcedido = permisoConcedido,
+                    radio = radio,
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
@@ -178,6 +181,11 @@ fun PantallaMapa(vm: MapaViewModel, temaOscuro: Boolean) {
                         seleccionada = categoria,
                         onFiltrar = { vm.filtrar(it) }
                     )
+                    FiltroRadio(
+                        radios = vm.radios,
+                        seleccionado = radio,
+                        onCambiar = { vm.cambiarRadio(it) }
+                    )
                     ListaLugares(
                         lugares = lugares,
                         seleccionado = seleccionado,
@@ -185,7 +193,8 @@ fun PantallaMapa(vm: MapaViewModel, temaOscuro: Boolean) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1f),
-                        masCercanoId = masCercano?.id
+                        masCercanoId = masCercano?.id,
+                        dentroIds = dentroDelRadio
                     )
                 }
             }
@@ -201,6 +210,7 @@ fun PantallaMapa(vm: MapaViewModel, temaOscuro: Boolean) {
                     seleccionado = seleccionado,
                     masCercanoId = masCercano?.id,
                     permisoConcedido = permisoConcedido,
+                    radio = radio,
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
@@ -217,6 +227,11 @@ fun PantallaMapa(vm: MapaViewModel, temaOscuro: Boolean) {
                     seleccionada = categoria,
                     onFiltrar = { vm.filtrar(it) }
                 )
+                FiltroRadio(
+                    radios = vm.radios,
+                    seleccionado = radio,
+                    onCambiar = { vm.cambiarRadio(it) }
+                )
                 ListaLugares(
                     lugares = lugares,
                     seleccionado = seleccionado,
@@ -224,7 +239,8 @@ fun PantallaMapa(vm: MapaViewModel, temaOscuro: Boolean) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(220.dp),
-                    masCercanoId = masCercano?.id
+                    masCercanoId = masCercano?.id,
+                    dentroIds = dentroDelRadio
                 )
             }
         }
@@ -316,6 +332,38 @@ private fun FiltroCategorias(
                 selected = cat == seleccionada,
                 onClick = { onFiltrar(cat) },
                 label = { Text(cat) },
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            )
+        }
+    }
+}
+
+@Composable
+private fun FiltroRadio(
+    radios: List<Int>,
+    seleccionado: Int,
+    onCambiar: (Int) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "Radio:",
+            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.bodyMedium
+        )
+        radios.forEach { metros ->
+            FilterChip(
+                selected = metros == seleccionado,
+                onClick = { onCambiar(metros) },
+                label = { Text("$metros m") },
                 colors = FilterChipDefaults.filterChipColors(
                     selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                     selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
