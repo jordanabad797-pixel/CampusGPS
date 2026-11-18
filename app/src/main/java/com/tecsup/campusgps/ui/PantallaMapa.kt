@@ -62,6 +62,7 @@ fun PantallaMapa(vm: MapaViewModel, temaOscuro: Boolean) {
     val categoria by vm.categoria.collectAsState()
     val radio by vm.radio.collectAsState()
     val dentroDelRadio by vm.dentroDelRadio.collectAsState()
+    val ultimoVisitado by vm.ultimoVisitado.collectAsState()
     val seleccionado by vm.seleccionado.collectAsState()
     val masCercano by vm.masCercano.collectAsState()
     val contexto = LocalContext.current
@@ -173,6 +174,7 @@ fun PantallaMapa(vm: MapaViewModel, temaOscuro: Boolean) {
                         estado = estado,
                         lugares = lugares,
                         masCercano = masCercano,
+                        ultimoVisitado = ultimoVisitado,
                         onObtener = { alPulsar() },
                         onIrMasCercano = { masCercano?.let { vm.seleccionar(it.id) } }
                     )
@@ -219,6 +221,7 @@ fun PantallaMapa(vm: MapaViewModel, temaOscuro: Boolean) {
                     estado = estado,
                     lugares = lugares,
                     masCercano = masCercano,
+                    ultimoVisitado = ultimoVisitado,
                     onObtener = { alPulsar() },
                     onIrMasCercano = { masCercano?.let { vm.seleccionar(it.id) } }
                 )
@@ -252,6 +255,7 @@ private fun Controles(
     estado: UbicacionUi,
     lugares: List<LugarConDistancia>,
     masCercano: Lugar?,
+    ultimoVisitado: Lugar?,
     onObtener: () -> Unit,
     onIrMasCercano: () -> Unit
 ) {
@@ -296,6 +300,13 @@ private fun Controles(
                     append("${cercano.lugar.nombre} (${formatearDistancia(metrosCercano)})")
                 },
                 style = MaterialTheme.typography.bodyMedium
+            )
+        }
+        if (ultimoVisitado != null) {
+            Text(
+                text = "Último lugar visitado: ${ultimoVisitado.nombre}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
         when (estado) {
