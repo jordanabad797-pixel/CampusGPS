@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -40,7 +41,16 @@ class MapaViewModel(
     private val _temaOscuro = MutableStateFlow<Boolean?>(null)
     val temaOscuro: StateFlow<Boolean?> = _temaOscuro.asStateFlow()
 
-    val masCercano: StateFlow<Lugar?> = lugares
+    val categorias: List<String> = lugaresRepo.obtenerLugares().map { it.categoria }.distinct()
+
+    private val _categoria = MutableStateFlow<String?>(null)
+    val categoria: StateFlow<String?> = _categoria.asStateFlow()
+
+    val lugaresVisibles: StateFlow<List<LugarConDistancia>> = combine(_lugares, _categoria) { lista, cat ->
+        if (cat == null) lista else lista.filter { it.lugar.categoria == cat }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _lugares.value)
+
+    val masCercano: StateFlow<Lugar?> = lugaresVisibles
         .map { lista -> lista.firstOrNull { it.metros != null }?.lugar }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
@@ -73,6 +83,17 @@ class MapaViewModel(
 
     fun cambiarTema(oscuro: Boolean) {
         _temaOscuro.value = oscuro
+    }
+
+    fun filtrar(categoria: String?) {
+        _categoria.value = if (_categoria.value == categoria) null else categoria
+        val actual = _seleccionado.value
+        val visible = _lugares.value.any {
+            it.lugar.id == actual && (_categoria.value == null || it.lugar.categoria == _categoria.value)
+        }
+        if (!visible) {
+            _seleccionado.value = null
+        }
     }
 
     fun seleccionar(id: Int?) {

@@ -15,13 +15,17 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -54,7 +58,8 @@ import java.util.Locale
 @Composable
 fun PantallaMapa(vm: MapaViewModel, temaOscuro: Boolean) {
     val estado by vm.estado.collectAsState()
-    val lugares by vm.lugares.collectAsState()
+    val lugares by vm.lugaresVisibles.collectAsState()
+    val categoria by vm.categoria.collectAsState()
     val seleccionado by vm.seleccionado.collectAsState()
     val masCercano by vm.masCercano.collectAsState()
     val contexto = LocalContext.current
@@ -168,6 +173,11 @@ fun PantallaMapa(vm: MapaViewModel, temaOscuro: Boolean) {
                         onObtener = { alPulsar() },
                         onIrMasCercano = { masCercano?.let { vm.seleccionar(it.id) } }
                     )
+                    FiltroCategorias(
+                        categorias = vm.categorias,
+                        seleccionada = categoria,
+                        onFiltrar = { vm.filtrar(it) }
+                    )
                     ListaLugares(
                         lugares = lugares,
                         seleccionado = seleccionado,
@@ -201,6 +211,11 @@ fun PantallaMapa(vm: MapaViewModel, temaOscuro: Boolean) {
                     masCercano = masCercano,
                     onObtener = { alPulsar() },
                     onIrMasCercano = { masCercano?.let { vm.seleccionar(it.id) } }
+                )
+                FiltroCategorias(
+                    categorias = vm.categorias,
+                    seleccionada = categoria,
+                    onFiltrar = { vm.filtrar(it) }
                 )
                 ListaLugares(
                     lugares = lugares,
@@ -279,6 +294,33 @@ private fun Controles(
                 style = MaterialTheme.typography.bodySmall
             )
             is UbicacionUi.Error -> Unit
+        }
+    }
+}
+
+@Composable
+private fun FiltroCategorias(
+    categorias: List<String>,
+    seleccionada: String?,
+    onFiltrar: (String) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        categorias.forEach { cat ->
+            FilterChip(
+                selected = cat == seleccionada,
+                onClick = { onFiltrar(cat) },
+                label = { Text(cat) },
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            )
         }
     }
 }
