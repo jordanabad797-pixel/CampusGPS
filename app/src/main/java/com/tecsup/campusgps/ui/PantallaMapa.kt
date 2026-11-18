@@ -68,7 +68,7 @@ fun PantallaMapa(vm: MapaViewModel) {
         }
     }
 
-    fun alPulsar() {
+    fun tienePermiso(): Boolean {
         val fine = ContextCompat.checkSelfPermission(
             contexto,
             Manifest.permission.ACCESS_FINE_LOCATION
@@ -77,7 +77,13 @@ fun PantallaMapa(vm: MapaViewModel) {
             contexto,
             Manifest.permission.ACCESS_COARSE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
-        if (fine || coarse) {
+        return fine || coarse
+    }
+
+    val permisoConcedido = tienePermiso()
+
+    fun alPulsar() {
+        if (tienePermiso()) {
             vm.buscar()
         } else {
             lanzador.launch(
@@ -138,6 +144,7 @@ fun PantallaMapa(vm: MapaViewModel) {
                     lugares = lugares,
                     seleccionado = seleccionado,
                     masCercanoId = masCercano?.id,
+                    permisoConcedido = permisoConcedido,
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
@@ -176,6 +183,7 @@ fun PantallaMapa(vm: MapaViewModel) {
                     lugares = lugares,
                     seleccionado = seleccionado,
                     masCercanoId = masCercano?.id,
+                    permisoConcedido = permisoConcedido,
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
