@@ -63,6 +63,7 @@ fun PantallaMapa(vm: MapaViewModel, temaOscuro: Boolean) {
     val radio by vm.radio.collectAsState()
     val dentroDelRadio by vm.dentroDelRadio.collectAsState()
     val ultimoVisitado by vm.ultimoVisitado.collectAsState()
+    val siguiendo by vm.siguiendo.collectAsState()
     val seleccionado by vm.seleccionado.collectAsState()
     val masCercano by vm.masCercano.collectAsState()
     val contexto = LocalContext.current
@@ -95,6 +96,21 @@ fun PantallaMapa(vm: MapaViewModel, temaOscuro: Boolean) {
     fun alPulsar() {
         if (tienePermiso()) {
             vm.buscar()
+        } else {
+            lanzador.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            )
+        }
+    }
+
+    fun alternarSeguimiento() {
+        if (siguiendo) {
+            vm.detenerSeguimiento()
+        } else if (tienePermiso()) {
+            vm.iniciarSeguimiento()
         } else {
             lanzador.launch(
                 arrayOf(
@@ -175,6 +191,8 @@ fun PantallaMapa(vm: MapaViewModel, temaOscuro: Boolean) {
                         lugares = lugares,
                         masCercano = masCercano,
                         ultimoVisitado = ultimoVisitado,
+                        siguiendo = siguiendo,
+                        onSeguimiento = { alternarSeguimiento() },
                         onObtener = { alPulsar() },
                         onIrMasCercano = { masCercano?.let { vm.seleccionar(it.id) } }
                     )
@@ -222,6 +240,8 @@ fun PantallaMapa(vm: MapaViewModel, temaOscuro: Boolean) {
                     lugares = lugares,
                     masCercano = masCercano,
                     ultimoVisitado = ultimoVisitado,
+                    siguiendo = siguiendo,
+                    onSeguimiento = { alternarSeguimiento() },
                     onObtener = { alPulsar() },
                     onIrMasCercano = { masCercano?.let { vm.seleccionar(it.id) } }
                 )
@@ -256,6 +276,8 @@ private fun Controles(
     lugares: List<LugarConDistancia>,
     masCercano: Lugar?,
     ultimoVisitado: Lugar?,
+    siguiendo: Boolean,
+    onSeguimiento: () -> Unit,
     onObtener: () -> Unit,
     onIrMasCercano: () -> Unit
 ) {
@@ -272,22 +294,39 @@ private fun Controles(
         ) {
             Text("Obtener mi ubicación", fontWeight = FontWeight.Bold)
         }
-        OutlinedButton(
-            onClick = onIrMasCercano,
-            enabled = masCercano != null,
-            colors = ButtonDefaults.outlinedButtonColors(
-                contentColor = MaterialTheme.colorScheme.primary
-            ),
-            border = BorderStroke(
-                1.dp,
-                if (masCercano != null) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
-                }
-            )
-        ) {
-            Text("Ir al más cercano", fontWeight = FontWeight.Bold)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(
+                onClick = onIrMasCercano,
+                enabled = masCercano != null,
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.primary
+                ),
+                border = BorderStroke(
+                    1.dp,
+                    if (masCercano != null) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+                    }
+                )
+            ) {
+                Text("Ir al más cercano", fontWeight = FontWeight.Bold)
+            }
+            val colorSeguir = if (siguiendo) {
+                MaterialTheme.colorScheme.error
+            } else {
+                MaterialTheme.colorScheme.primary
+            }
+            OutlinedButton(
+                onClick = onSeguimiento,
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = colorSeguir),
+                border = BorderStroke(1.dp, colorSeguir)
+            ) {
+                Text(
+                    text = if (siguiendo) "Detener seguimiento" else "Iniciar seguimiento",
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
         val cercano = lugares.firstOrNull { it.lugar.id == masCercano?.id }
         val metrosCercano = cercano?.metros
