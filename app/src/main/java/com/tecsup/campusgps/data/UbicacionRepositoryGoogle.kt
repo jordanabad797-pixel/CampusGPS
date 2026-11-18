@@ -2,6 +2,8 @@ package com.tecsup.campusgps.data
 
 import android.annotation.SuppressLint
 import android.content.Context
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
@@ -18,7 +20,11 @@ class UbicacionRepositoryGoogle(context: Context) : UbicacionRepository {
         val ubicacion = cliente.getCurrentLocation(
             Priority.PRIORITY_HIGH_ACCURACY,
             CancellationTokenSource().token
-        ).await() ?: throw IllegalStateException("No se pudo obtener la ubicación")
+        ).await() ?: throw UbicacionNoDisponibleException()
         Posicion(ubicacion.latitude, ubicacion.longitude)
     }
+
+    override fun playServicesDisponible(): Boolean =
+        GoogleApiAvailability.getInstance()
+            .isGooglePlayServicesAvailable(contexto) == ConnectionResult.SUCCESS
 }

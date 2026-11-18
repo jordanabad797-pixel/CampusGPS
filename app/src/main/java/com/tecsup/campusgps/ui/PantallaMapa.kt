@@ -1,7 +1,10 @@
 package com.tecsup.campusgps.ui
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -29,7 +32,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -78,6 +80,14 @@ fun PantallaMapa(vm: MapaViewModel) {
         }
     }
 
+    fun abrirAjustes() {
+        val intent = Intent(
+            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+            Uri.fromParts("package", contexto.packageName, null)
+        )
+        contexto.startActivity(intent)
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -89,79 +99,96 @@ fun PantallaMapa(vm: MapaViewModel) {
             )
         }
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
-            MapaUbicacion(
-                estado = estado,
-                lugares = lugares,
-                seleccionado = seleccionado,
-                masCercanoId = masCercano?.id,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-            )
+        val error = estado as? UbicacionUi.Error
+        if (error != null) {
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(horizontal = 16.dp, vertical = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                Button(
-                    onClick = { alPulsar() },
-                    enabled = estado !is UbicacionUi.Buscando
-                ) {
+                Button(onClick = { alPulsar() }) {
                     Text("Obtener mi ubicación", fontWeight = FontWeight.Bold)
                 }
-                OutlinedButton(
-                    onClick = { masCercano?.let { vm.seleccionar(it.id) } },
-                    enabled = masCercano != null
-                ) {
-                    Text("Ir al más cercano", fontWeight = FontWeight.Bold)
-                }
-                val cercano = lugares.firstOrNull { it.lugar.id == masCercano?.id }
-                val metrosCercano = cercano?.metros
-                if (cercano != null && metrosCercano != null) {
-                    Text(
-                        text = buildAnnotatedString {
-                            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                                append("Más cercano: ")
-                            }
-                            append("${cercano.lugar.nombre} (${formatearDistancia(metrosCercano)})")
-                        },
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-                when (val e = estado) {
-                    UbicacionUi.Inicial -> Text(
-                        text = "Pulsa el botón para empezar",
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                    UbicacionUi.Buscando -> CircularProgressIndicator(modifier = Modifier.size(24.dp))
-                    is UbicacionUi.Lista -> Text(
-                        text = "Latitud: ${String.format(Locale.US, "%.4f", e.posicion.latitud)} · " +
-                            "Longitud: ${String.format(Locale.US, "%.4f", e.posicion.longitud)}",
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                    is UbicacionUi.Error -> Text(
-                        text = e.mensaje,
-                        color = MaterialTheme.colorScheme.error,
-                        textAlign = TextAlign.Center
-                    )
-                }
+                MensajeError(
+                    error = error,
+                    onAbrirAjustes = { abrirAjustes() },
+                    onReintentar = { alPulsar() }
+                )
             }
-            ListaLugares(
-                lugares = lugares,
-                seleccionado = seleccionado,
-                onClick = { vm.seleccionar(it) },
+        } else {
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(220.dp),
-                masCercanoId = masCercano?.id
-            )
+                    .fillMaxSize()
+                    .padding(padding)
+            ) {
+                MapaUbicacion(
+                    estado = estado,
+                    lugares = lugares,
+                    seleccionado = seleccionado,
+                    masCercanoId = masCercano?.id,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Button(
+                        onClick = { alPulsar() },
+                        enabled = estado !is UbicacionUi.Buscando
+                    ) {
+                        Text("Obtener mi ubicación", fontWeight = FontWeight.Bold)
+                    }
+                    OutlinedButton(
+                        onClick = { masCercano?.let { vm.seleccionar(it.id) } },
+                        enabled = masCercano != null
+                    ) {
+                        Text("Ir al más cercano", fontWeight = FontWeight.Bold)
+                    }
+                    val cercano = lugares.firstOrNull { it.lugar.id == masCercano?.id }
+                    val metrosCercano = cercano?.metros
+                    if (cercano != null && metrosCercano != null) {
+                        Text(
+                            text = buildAnnotatedString {
+                                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                                    append("Más cercano: ")
+                                }
+                                append("${cercano.lugar.nombre} (${formatearDistancia(metrosCercano)})")
+                            },
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                    when (val e = estado) {
+                        UbicacionUi.Inicial -> Text(
+                            text = "Pulsa el botón para empezar",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                        UbicacionUi.Buscando -> CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                        is UbicacionUi.Lista -> Text(
+                            text = "Latitud: ${String.format(Locale.US, "%.4f", e.posicion.latitud)} · " +
+                                "Longitud: ${String.format(Locale.US, "%.4f", e.posicion.longitud)}",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                        is UbicacionUi.Error -> Unit
+                    }
+                }
+                ListaLugares(
+                    lugares = lugares,
+                    seleccionado = seleccionado,
+                    onClick = { vm.seleccionar(it) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(220.dp),
+                    masCercanoId = masCercano?.id
+                )
+            }
         }
     }
 }
